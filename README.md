@@ -1,4 +1,5 @@
 This repository is the modified version of FRCN to utilize the whole image features in object detection.
+(Since I have not debugged this version yet, it may some bugs.)
 
 # How to use
 - Extract the whole image features from images in train, val and test datasets and save them as numpy files. (At ILSVRC 15, we used the output from "pool5/7x7_s1" in GoogLeNet.)

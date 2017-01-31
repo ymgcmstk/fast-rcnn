@@ -130,6 +130,13 @@ __C.ROOT_DIR = osp.abspath(osp.join(osp.dirname(__file__), '..', '..'))
 # Place outputs under an experiments directory
 __C.EXP_DIR = 'default'
 
+# [Written by Yamaguchi] Whether using the whole frame features or not.
+__C.USE_WHOLE = False
+# [Written by Yamaguchi] The dimension of the whole features.
+__C.WHOLE_DIM = 1024
+# [Written by Yamaguchi] We multiply the whole frame features by constant value. In practical use, this value should be 0.1 * E[norm(v_{fc7})] / E[norm(v_{whole})]
+__C.WHOLE_SCALE = 1.0
+
 def get_output_dir(imdb, net):
     """Return the directory where experimental artifacts are placed.
 

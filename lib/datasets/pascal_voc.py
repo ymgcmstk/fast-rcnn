@@ -53,6 +53,9 @@ class pascal_voc(datasets.imdb):
         """
         return self.image_path_from_index(self._image_index[i])
 
+    def whole_path_at(self, i):
+        raise NotImplementedError
+
     def image_path_from_index(self, index):
         """
         Construct an image path from the image's "index" identifier.

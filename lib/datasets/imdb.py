@@ -77,6 +77,9 @@ class imdb(object):
     def image_path_at(self, i):
         raise NotImplementedError
 
+    def whole_path_at(self, i):
+        raise NotImplementedError
+
     def default_roidb(self):
         raise NotImplementedError
 

@@ -73,35 +73,45 @@ class RoIDataLayer(caffe.Layer):
 
         self._num_classes = layer_params['num_classes']
 
-        self._name_to_top_map = {
-            'data': 0,
-            'rois': 1,
-            'labels': 2}
+        self._name_to_top_map = {}
 
         # data blob: holds a batch of N images, each with 3 channels
         # The height and width (100 x 100) are dummy values
-        top[0].reshape(1, 3, 100, 100)
-
+        top_ind = 0
+        top[top_ind].reshape(1, 3, 100, 100)
+        self._name_to_top_map['data'] = top_ind
+        top_ind += 1
         # rois blob: holds R regions of interest, each is a 5-tuple
         # (n, x1, y1, x2, y2) specifying an image batch index n and a
         # rectangle (x1, y1, x2, y2)
-        top[1].reshape(1, 5)
+        top[top_ind].reshape(1, 5)
+        self._name_to_top_map['rois'] = top_ind
+        top_ind += 1
 
         # labels blob: R categorical labels in [0, ..., K] for K foreground
         # classes plus background
-        top[2].reshape(1)
+        top[top_ind].reshape(1)
+        self._name_to_top_map['labels'] = top_ind
+        top_ind += 1
 
         if cfg.TRAIN.BBOX_REG:
-            self._name_to_top_map['bbox_targets'] = 3
-            self._name_to_top_map['bbox_loss_weights'] = 4
 
             # bbox_targets blob: R bounding-box regression targets with 4
             # targets per class
-            top[3].reshape(1, self._num_classes * 4)
+            top[top_ind].reshape(1, self._num_classes * 4)
+            self._name_to_top_map['bbox_targets'] = top_ind
+            top_ind += 1
 
             # bbox_loss_weights blob: At most 4 targets per roi are active;
             # thisbinary vector sepcifies the subset of active targets
-            top[4].reshape(1, self._num_classes * 4)
+            top[top_ind].reshape(1, self._num_classes * 4)
+            self._name_to_top_map['bbox_loss_weights'] = top_ind
+            top_ind += 1
+
+        if cfg.USE_WHOLE:
+            top[top_ind].reshape(1, cfg.WHOLE_DIM)
+            self._name_to_top_map['whole_features'] = top_ind
+            top_ind += 1
 
     def forward(self, bottom, top):
         """Get blobs and copy them into this layer's top blob vector."""

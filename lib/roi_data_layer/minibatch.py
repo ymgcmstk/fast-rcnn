@@ -33,6 +33,8 @@ def get_minibatch(roidb, num_classes):
     labels_blob = np.zeros((0), dtype=np.float32)
     bbox_targets_blob = np.zeros((0, 4 * num_classes), dtype=np.float32)
     bbox_loss_blob = np.zeros(bbox_targets_blob.shape, dtype=np.float32)
+    if cfg.USE_WHOLE:
+        whole_blob = np.zeros((0, cfg.WHOLE_DIM), dtype=np.float32)
     # all_overlaps = []
     for im_i in xrange(num_images):
         labels, overlaps, im_rois, bbox_targets, bbox_loss \
@@ -50,6 +52,12 @@ def get_minibatch(roidb, num_classes):
         bbox_targets_blob = np.vstack((bbox_targets_blob, bbox_targets))
         bbox_loss_blob = np.vstack((bbox_loss_blob, bbox_loss))
         # all_overlaps = np.hstack((all_overlaps, overlaps))
+        if cfg.USE_WHOLE:
+            cur_whole = np.load(roidb[im_i]['whole'])
+            cur_whole *= cfg.WHOLE_SCALE
+            cur_whole = cur_whole.ravel()[np.newaxis, :]
+            assert cur_whole.shape[1] == cfg.WHOLE_DIM
+            whole_blob = np.vstack((whole_blob, np.tile(cur_whole, (rois.shape[0], 1))))
 
     # For debug visualizations
     # _vis_minibatch(im_blob, rois_blob, labels_blob, all_overlaps)
@@ -61,6 +69,9 @@ def get_minibatch(roidb, num_classes):
     if cfg.TRAIN.BBOX_REG:
         blobs['bbox_targets'] = bbox_targets_blob
         blobs['bbox_loss_weights'] = bbox_loss_blob
+
+    if cfg.USE_WHOLE:
+        blobs['whole_features'] = whole_blob
 
     return blobs
 

@@ -37,6 +37,10 @@ def prepare_roidb(imdb):
         nonzero_inds = np.where(max_overlaps > 0)[0]
         assert all(max_classes[nonzero_inds] != 0)
 
+        if cfg.USE_WHOLE:
+            roidb[i]['whole'] = imdb.whole_path_at(i)
+
+
 def add_bbox_regression_targets(roidb):
     """Add information needed to train bounding-box regressors."""
     assert len(roidb) > 0

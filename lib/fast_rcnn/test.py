@@ -97,11 +97,17 @@ def _project_im_rois(im_rois, scales):
 
     return rois, levels
 
-def _get_blobs(im, rois):
+def _get_blobs(im, rois, whole_path=None):
     """Convert an image and RoIs within that image into network inputs."""
     blobs = {'data' : None, 'rois' : None}
     blobs['data'], im_scale_factors = _get_image_blob(im)
     blobs['rois'] = _get_rois_blob(rois, im_scale_factors)
+    if cfg.USE_WHOLE:
+        cur_whole = np.load(whole_path)
+        cur_whole *= cfg.WHOLE_SCALE
+        cur_whole = cur_whole.ravel()[np.newaxis, :]
+        assert cur_whole.shape[1] == cfg.WHOLE_DIM
+        blobs['whole_feature'] = cur_whole
     return blobs, im_scale_factors
 
 def _bbox_pred(boxes, box_deltas):
@@ -151,7 +157,7 @@ def _clip_boxes(boxes, im_shape):
     boxes[:, 3::4] = np.minimum(boxes[:, 3::4], im_shape[0] - 1)
     return boxes
 
-def im_detect(net, im, boxes):
+def im_detect(net, im, boxes, whole_path=None):
     """Detect object classes in an image given object proposals.
 
     Arguments:
@@ -164,7 +170,7 @@ def im_detect(net, im, boxes):
             background as object category 0)
         boxes (ndarray): R x (4*K) array of predicted bounding boxes
     """
-    blobs, unused_im_scale_factors = _get_blobs(im, boxes)
+    blobs, unused_im_scale_factors = _get_blobs(im, boxes, whole_path)
 
     # When mapping from image ROIs to feature map ROIs, there's some aliasing
     # (some distinct image ROIs get mapped to the same feature ROI).
@@ -275,8 +281,12 @@ def test_net(net, imdb):
     roidb = imdb.roidb
     for i in xrange(num_images):
         im = cv2.imread(imdb.image_path_at(i))
+        if cfg.USE_WHOLE:
+            whole_path = imdb.whole_path_at(i)
+        else:
+            whole_path = None
         _t['im_detect'].tic()
-        scores, boxes = im_detect(net, im, roidb[i]['boxes'])
+        scores, boxes = im_detect(net, im, roidb[i]['boxes'], whole_path)
         _t['im_detect'].toc()
 
         _t['misc'].tic()
